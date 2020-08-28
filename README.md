@@ -264,7 +264,7 @@ Of course we find nothing. Let's dive into `subTree`. Because we potentially are
 
 While traversing the vnodes, if we find a matching component, we want to keep it by adding it to the `found` array, which we maintain by passing to each `find` call. If we did not find a matching component, we may need to dive deeper by checking if `vnode.subTree.children` is defined. Finally, if it's not, we return the accumulator.
 
-```
+```js
 function find(vnodes, target, found) {
   if (!Array.isArray(vnodes)) {
     return found
@@ -331,7 +331,7 @@ If you have used Vue Test Utils before, you may recognise this in a slightly dif
 
 ## A More Complete Example
 
-This implementation is far from perfect - there are more checks that need to be implemented. For example, this does not work with components using `template` instead of `render`, or `<Suspense>`. A more complete implementation can be found in Vue Test Utils. 
+This implementation is far from perfect - there are more checks that need to be implemented. For example, this does not work with components using `template` instead of `render`, or `<Suspense>`. A more complete implementation can be found here in the [Vue Test Utils source code](https://github.com/vuejs/vue-test-utils-next/blob/master/src/utils/find.ts). 
 
 At the time of this article, the implementation there mutates an array instead of passing a new copy to each recursive call. You can [see it here](https://github.com/vuejs/vue-test-utils-next/blob/8cdee798798d81fbae4c0ea9ebddb184bafc2d7a/src/utils/find.ts#L101) - the functions you want to look at are `findAllVNodes` and `aggregateChildren`. Although I much prefer the recursive style implementation here, both are valid approaches to the problem. 
 
