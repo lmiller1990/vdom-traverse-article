@@ -1,18 +1,19 @@
 In this article, we do a dive into the *virtual dom* in Vue.js 3, and how we can traverse it with the goal of finding a specific component (or what we will call a `vnode` - more on this soon).
 
-Most of the time, you don't need to think about how Vue interally represents your components. Some libraries do make sure of this though - one such library is Vue Test Utils and it's `findComponent` function. Another such use case is the Vue DevTools, which show you the component hierachy for your application.
-
-Note: this is a very technical article. While I do my best to explain how everything works, the only real way to fully grasp this is to write your own code and `console.log` a lot, to see what's really happening. This is often the nature of the type of recursive algorithm we will be writing.
-
-An alternative would be to watch the accompanying screencast, will I will make free indefinitely.
+Most of the time, you don't need to think about how Vue internally represents your components. Some libraries do make sure of this though - one such library is Vue Test Utils and it's `findComponent` function. Another such use case is the Vue DevTools, which show you the component hierarchy for your application, seen on the left hand side of this screenshot.
 
 ![](https://raw.githubusercontent.com/vuejs/vue-devtools/dev/media/screenshot-shadow.png)
 
+Note: this is a technical article. While I will do my best to explain how everything works, the only real way to fully grasp this is to write your own code and `console.log` a lot, to see what's really happening. This is often the nature of the type of recursive algorithm we will be writing.
+
+An alternative would be to watch the accompanying screencast, will I will make free indefinitely. You can find the [source code for this example here](https://github.com/lmiller1990/vdom-traverse-article).
+
+
 ## The Virtual DOM
 
-For various reasons, one of which is performance, Vue keeps an internal representation  of the component hierachy. This is called a Virtual DOM (VDOM). When something changes (for example a prop) Vue will figure out if something needs to be updated, calculate the new representation, and finally, update the DOM. A trivial example might be:
+For various reasons, one of which is performance, Vue keeps an internal representation  of the component hierarchy. This is called a Virtual DOM (VDOM). When something changes (for example a prop) Vue will figure out if something needs to be updated, calculate the new representation, and finally, update the DOM. A trivial example might be:
 
-```
+```html
 <div>
   <span v-if="show">Visible</span>
 </div>
@@ -20,15 +21,15 @@ For various reasons, one of which is performance, Vue keeps an internal represen
 
 It could be represented like this:
 
-```
+```yml
 - div
-  |- span
-    |- 'Visible'
+  - span
+    - 'Visible'
 ```
 
 So it would be `HTMLDivElement -> HTMLSpanElement -> TextNode`. If `show` becomes `false`, Vue would update it's Virtual DOM:
 
-```
+```yml
 - div
 ```
 
@@ -38,7 +39,7 @@ Then, finally, Vue would update the DOM, removing the `<span>`.
 
 Our goal will be to implement a subset of `findComponent`, part of the Vue Test Utils API. We will write something like this:
 
-```
+```js
 const { createApp } = require('vue')
 
 const App = {
@@ -239,7 +240,7 @@ function findComponent(comp, { within }) {
 
 Since we know `children` can be an array, we will make the first argument to the `find` function an array of vnodes. The second will be the component we are looking for. Because the initial starting vnode, `app.$vnode`, is a single vnode, we just put it in an array to kick things off. 
 
-The third argument is an empty array - because are writing a recusive function, we need some place to keep the components we have found that match the target. We will store them in this array, passing it to each recursive call of `find`. This way we avoid mutating an array - I find less mutation leads to less bugs (your milage may vary).
+The third argument is an empty array - because are writing a recursive function, we need some place to keep the components we have found that match the target. We will store them in this array, passing it to each recursive call of `find`. This way we avoid mutating an array - I find less mutation leads to less bugs (your mileage may vary).
 
 ## Recursive find
 
@@ -318,7 +319,7 @@ function find(vnodes, target, found) {
 }
 ```
 
-And somewhat suprisingly, *that's it*. `const result = findComponent(A, { within: app })` now returns a reference to `A`. You can see it working like this:
+And somewhat surprisingly, *that's it*. `const result = findComponent(A, { within: app })` now returns a reference to `A`. You can see it working like this:
 
 ```js
 console.log(
@@ -330,8 +331,8 @@ If you have used Vue Test Utils before, you may recognise this in a slightly dif
 
 ## A More Complete Example
 
-This implementation is far from perfect - there are more checks that need to be implemented. For example, this does not work with compnents using `template` instead of `render`, or `<Suspense>`. A more complete implementation can be found in Vue Test Utils. 
+This implementation is far from perfect - there are more checks that need to be implemented. For example, this does not work with components using `template` instead of `render`, or `<Suspense>`. A more complete implementation can be found in Vue Test Utils. 
 
-At the time of this article, the implementation there mutates an arraym instead of passing a new copy to each recursive call. Although I much prefer the recursive style implementation here, both are valid approaches to the problem. 
+At the time of this article, the implementation there mutates an array instead of passing a new copy to each recursive call. You can [see it here](https://github.com/vuejs/vue-test-utils-next/blob/8cdee798798d81fbae4c0ea9ebddb184bafc2d7a/src/utils/find.ts#L101) - the functions you want to look at are `findAllVNodes` and `aggregateChildren`. Although I much prefer the recursive style implementation here, both are valid approaches to the problem. 
 
-You can find the source code for this example here.
+You can find the [source code for this example here](https://github.com/lmiller1990/vdom-traverse-article).
