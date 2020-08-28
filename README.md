@@ -44,18 +44,18 @@ const { createApp } = require('vue')
 
 const App = {
   template: `
-    <A>
+    <C>
       <B>
-        <C />
+        <A />
       </B>
-    </A>
+    </C>
   `
 }
 
 const app = createApp(App).mount('#app')
 
-const component = findComponent(C, { within: app })
-// we found <C />!
+const component = findComponent(A, { within: app })
+// we found <A />!
 ```
 
 To have a working `findComponent` function, we need to traverse the Virtual DOM, a tree like structure of arbitrary depth. Let's get started.
@@ -238,7 +238,7 @@ function findComponent(comp, { within }) {
 }
 ```
 
-Since we know `children` can be an array, we will make the first argument to the `find` function an array of vnodes. The second will be the component we are looking for. Because the initial starting vnode, `app.$vnode`, is a single vnode, we just put it in an array to kick things off. 
+Since we know `children` can be an array, we will make the first argument to the `find` function an array of vnodes. The second will be the component we are looking for. Because the initial starting vnode, `app.$`, is a single vnode, we just put it in an array to kick things off. 
 
 The third argument is an empty array - because are writing a recursive function, we need some place to keep the components we have found that match the target. We will store them in this array, passing it to each recursive call of `find`. This way we avoid mutating an array - I find less mutation leads to less bugs (your mileage may vary).
 
