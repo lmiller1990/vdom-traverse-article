@@ -1,74 +1,73 @@
 require('jsdom-global')()
-const assert = require('assert')
-const { createApp, h } = require('vue')
+const { h, createApp } = require('vue')
 
-const A = { 
-  name: 'A',
+const Bottom = {
+  name: 'Bottom',
   data() {
-    return { msg: 'msg' }
+    return {
+      msg: 'msg'
+    }
+  },
+  computed: {
+    greeting() {
+      return this.msg.toUpperCase()
+    }
   },
   render() {
-    return h('div', 'A')
+    return h('h6', 'TITLE')
+  }
+}
+const A = {
+  name: 'A',
+  render() {
+    return h('h4', h(Bottom))
   }
 }
 
-const B = { 
+const B = {
   name: 'B',
   render() {
     return h('span', h(A))
   }
 }
 
-const C = { 
+const C = {
   name: 'C',
-  data() {
-    return { foo: 'bar' }
-  },
   render() {
-    return h('p', { id: 'a', foo: this.foo }, h(B))
+    return h('div', h(B))
   }
 }
+
+// console.log(app.$
+//   .subTree.children[0].component
+//   .subTree.children[0].component.type)
 
 const app = createApp(C).mount(document.createElement('div'))
 
 function matches(vnode, target) {
-  if (!vnode) {
-    return false
-  }
-
   return vnode.type === target
 }
 
-function findComponent(comp, { within }) {
-  const result = find([within.$], comp, [])
-  if (result) {
-    return result[0]
-  }
-}
-
-function find(vnodes, target, found) {
-  if (!Array.isArray(vnodes)) {
-    return found
-  }
-
+function find(vnodes, target) {
   return vnodes.reduce((acc, vnode) => {
     if (matches(vnode, target)) {
-      return [...acc, vnode]
+      return vnode
     }
 
     if (vnode?.subTree?.children) {
-      return find(vnode.subTree.children, target, found)
+      return find(vnode.subTree.children, target)
     }
 
-    if (vnode?.component?.subTree) {
-      return find(vnode.component.subTree.children, target, found)
+    if (vnode?.component?.subTree?.children) {
+      return find(vnode.component.subTree.children, target)
     }
-
-    return acc
-  }, [])
+  }, {})
 }
 
-const result = findComponent(A, { within: app })
-console.log(
-  result.component.proxy.msg
-)
+function findComponent(target, { within }) {
+  return find([within.$], target)
+}
+
+const result = findComponent(Bottom, { within: app })
+
+console.log(result.component.proxy.greeting)
